@@ -1,4 +1,5 @@
-import psutil, os
+import psutil, os, tracemalloc
+from memory_profiler import profile
 
 def check_process_ram(name):
     sum = 0
@@ -29,27 +30,38 @@ def process_memory():
     return mem_info.rss
 
 # decorator function
-def profile(func):
-    def wrapper(*args, **kwargs):
+# def profile(func):
+#     def wrapper(*args, **kwargs):
 
-        mem_before = round(process_memory()/ 1024**2, 2)
-        result = func(*args, **kwargs)
-        mem_after = round(process_memory()/ 1024**2, 2)
-        print("{}:consumed memory: {:,} MB".format(
-            func.__name__,
-            mem_before, mem_after, mem_after - mem_before))
-        
-        return result
-    return wrapper
+#         mem_before = round(process_memory()/ 1024**2, 2)
+#         result = func(*args, **kwargs)
+#         mem_after = round(process_memory()/ 1024**2, 2)
+#         print("Fucntion {} :consumed memory: {:,} MB".format(
+#             func.__name__,
+#             mem_before, mem_after, mem_after - mem_before))
+#         return result
+#     return wrapper
 
 # instantiation of decorator function
 @profile
 # main code for which
 # memory has to be monitored
-def func():
+def func1():
     x = [x for x in range(0, 1000)]
     y = [y*100 for y in range(0, 1500)]
     del x
     return y
 
-func()
+
+def func2():
+    x = [x for x in range(0, 1000)]
+    y = [y*100 for y in range(0, 1500)]
+    del x
+    return y
+
+func1()
+tracemalloc.start()
+func2()
+current, peak = tracemalloc.get_traced_memory()
+print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB")
+tracemalloc.stop()
