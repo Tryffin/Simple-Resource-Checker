@@ -13,4 +13,14 @@ def check_process_ram(name):
             continue
     print("Total memory use : " + str(round(sum, 2)) + " MB")
 
-print(check_process_ram("Code.exe"))
+def check_current_ram():
+    mem = ps.virtual_memory()
+    total = str(round(mem.total / 1024**2, 2))
+    used = str(round(mem.used / 1024**2, 2))
+    used_per = str(round(mem.percent))
+    free = str(round(mem.free / 1024**2, 2))
+    print("Total memory size : " + total + " MB")
+    print("Total used memory :" + used + " MB(" + used_per + "%)")
+    print("Total available memory :" + free + " MB")
+
+print(check_current_ram())
