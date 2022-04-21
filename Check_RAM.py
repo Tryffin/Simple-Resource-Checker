@@ -7,9 +7,8 @@ def check_process_ram(name):
         p = psutil.Process(psutil.pids()[i])
         if p.name() == name:
             print("PID " + str(psutil.pids()[i]) + " : " + name + " " +
-                  str(round(p.memory_percent() * (psutil.virtual_memory()[0]/(1024**2) )/100, 2)) + 
-                    " MB")
-            sum += round(p.memory_percent() * (psutil.virtual_memory()[0]/(1024**2) )/100, 2)
+                    str(round(p.memory_info()[0] / 1024**2, 2)) + " MB")
+            sum += round(p.memory_info()[0] / 1024**2, 2)
             continue
     print("Total memory use : " + str(round(sum, 2)) + " MB")
 
@@ -29,7 +28,6 @@ def process_memory():
     mem_info = process.memory_info()
     return mem_info.rss
 
-# decorator function
 # def profile(func):
 #     def wrapper(*args, **kwargs):
 
@@ -42,16 +40,12 @@ def process_memory():
 #         return result
 #     return wrapper
 
-# instantiation of decorator function
 @profile
-# main code for which
-# memory has to be monitored
 def func1():
     x = [x for x in range(0, 1000)]
     y = [y*100 for y in range(0, 1500)]
     del x
     return y
-
 
 def func2():
     x = [x for x in range(0, 1000)]
