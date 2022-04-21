@@ -8,9 +8,22 @@ def check_process_ram(name):
         if p.name() == name:
             print("PID " + str(psutil.pids()[i]) + " : " + name + " " +
                     str(round(p.memory_info()[0] / 1024**2, 2)) + " MB")
+            
             sum += round(p.memory_info()[0] / 1024**2, 2)
             continue
     print("Total memory use : " + str(round(sum, 2)) + " MB")
+
+def check_process_threads(name):
+    sum = 0
+    for i in range(len(psutil.pids())):
+        p = psutil.Process(psutil.pids()[i])
+        if p.name() == name:
+            print("PID " + str(psutil.pids()[i]) + " : " + name + " " +
+                    str(p.num_threads()) + " threads")
+            
+            sum += p.num_threads()
+            continue
+    print("Total threads use : " + str(sum) + " threads")
 
 def check_current_ram():
     mem = psutil.virtual_memory()
@@ -59,3 +72,5 @@ func2()
 current, peak = tracemalloc.get_traced_memory()
 print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB")
 tracemalloc.stop()
+
+check_process_threads("Code.exe")
