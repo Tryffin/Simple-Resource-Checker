@@ -53,7 +53,7 @@ def process_memory():
 #         return result
 #     return wrapper
 
-
+@profile
 def func1():
     x = [x for x in range(0, 1000)]
     y = [y*100 for y in range(0, 1500)]
@@ -66,14 +66,14 @@ def func2():
     del x
     return y
 
-# func1()
+func1()
 
-# tracemalloc.start()
-# func2()
-# current, peak = tracemalloc.get_traced_memory()
-# print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB")
-# tracemalloc.stop()
+tracemalloc.start()
+func2()
+current, peak = tracemalloc.get_traced_memory()
+print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB")
+tracemalloc.stop()
 
-#check_current_ram()
+check_current_ram()
 check_process_ram("javaw.exe")
 check_process_threads("javaw.exe")
