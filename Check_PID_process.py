@@ -2,19 +2,24 @@ import sys
 import time
 import psutil
 
-# get pid from args
+# get pid from command line args
+# ex: python Check_PID_process.py (pid)
+# python Check_PID_process.py 1234
 if len(sys.argv) < 2:
-	print ("missing pid arg")
+	print ("missing pid command arg")
 	sys.exit()
 
-# get process
+# get process from PID of input
 pid = int(sys.argv[1])
 p = psutil.Process(pid)
 
-# monitor process and write data to file
-interval = 3 # polling seconds
-with open("process_monitor_" + p.name() + '_' + str(pid) + ".csv", "a+") as f:
-    f.write("time,cpu%,mem%\n") # titles
+# polling interval seconds
+interval = 3 
+
+# monitor process and write data to csv file
+with open("process_" + p.name() + '_' + str(pid) + ".csv", "a+") as f:
+    # titles of csv 
+    f.write("Time,CPU%,RAM\n") 
     while True:
         current_time = time.strftime('%Y-%m-%d-%H:%M:%S',time.localtime(time.time()))
         cpu_percent = p.cpu_percent()
