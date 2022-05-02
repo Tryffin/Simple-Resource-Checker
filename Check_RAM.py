@@ -3,10 +3,9 @@ from memory_profiler import profile
 
 def check_process_ram(name):
     sum = 0
-    for i in range(len(psutil.pids())):
-        p = psutil.Process(psutil.pids()[i])
+    for p in psutil.process_iter():
         if p.name() == name:
-            print("PID " + str(psutil.pids()[i]) + " : " + name + " " +
+            print("PID " + str(p.pid) + " : " + name + " " +
                     str(round(p.memory_info()[0] / 1024**2, 2)) + " MB")
             
             sum += round(p.memory_info()[0] / 1024**2, 2)
@@ -15,10 +14,9 @@ def check_process_ram(name):
 
 def check_process_threads(name):
     sum = 0
-    for i in range(len(psutil.pids())):
-        p = psutil.Process(psutil.pids()[i])
+    for p in psutil.process_iter():
         if p.name() == name:
-            print("PID " + str(psutil.pids()[i]) + " : " + name + " " +
+            print("PID " + str(p.pid) + " : " + name + " " +
                     str(p.num_threads()) + " threads")
             
             sum += p.num_threads()
@@ -75,5 +73,5 @@ print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB")
 tracemalloc.stop()
 
 check_current_ram()
-check_process_ram("javaw.exe")
-check_process_threads("javaw.exe")
+check_process_ram("msedge.exe")
+check_process_threads("msedge.exe")
