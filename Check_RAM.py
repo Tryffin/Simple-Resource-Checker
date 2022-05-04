@@ -1,27 +1,47 @@
-import psutil, os, tracemalloc
+import os, psutil, tracemalloc
+import time
+import multiprocessing
 from memory_profiler import profile
 
+
+interval = 3
 def check_process_ram(name):
     sum = 0
-    for p in psutil.process_iter():
-        if p.name() == name:
-            print("PID " + str(p.pid) + " : " + name + " " +
-                    str(round(p.memory_info()[0] / 1024**2, 2)) + " MB")
-            
-            sum += round(p.memory_info()[0] / 1024**2, 2)
-            continue
-    print("Total memory used by process " + name + " : " + str(round(sum, 2)) + " MB")
+    while True:
+        for p in psutil.process_iter():
+            if p.name() == name:
+                print("PID " + str(p.pid) + " : " + name + " " +
+                        str(round(p.memory_info()[0] / 1024**2, 2)) + " MB")
+                
+                sum += round(p.memory_info()[0] / 1024**2, 2)
+                continue
+        print("Total memory used by process " + name + " : " + str(round(sum, 2)) + " MB\n")
+        sum = 0
+        time.sleep(interval)
 
 def check_process_threads(name):
     sum = 0
-    for p in psutil.process_iter():
-        if p.name() == name:
-            print("PID " + str(p.pid) + " : " + name + " " +
-                    str(p.num_threads()) + " threads")
-            
-            sum += p.num_threads()
-            continue
-    print("Total threads used by process " + name + " : " + str(sum) + " threads")
+    while True:
+        for p in psutil.process_iter():
+            if p.name() == name:
+                print("PID " + str(p.pid) + " : " + name + " " +
+                        str(p.num_threads()) + " threads")
+                
+                sum += p.num_threads()
+                continue
+        print("Total threads used by process " + name + " : " + str(sum) + " threads\n")
+        sum = 0
+        time.sleep(interval)
+        
+class Monitor(multiprocessing.Process):
+    def __init__(self, monitor_type, p_name):
+        multiprocessing.Process.__init__(self)
+        self.monitor_type = monitor_type
+        self.p_name = p_name
+        
+    def run(self):
+        self.monitor_type(self.p_name)
+        
 
 def check_current_ram():
     mem = psutil.virtual_memory()
@@ -31,25 +51,24 @@ def check_current_ram():
     free = str(round(mem.free / 1024**2, 2))
     print("Total memory size : " + total + " MB")
     print("Total used memory :" + used + " MB(" + used_per + "%)")
-    print("Total available memory :" + free + " MB")
+    print("Total available memory :" + free + " MB\n")
 
-# inner psutil function
+#inner psutil function
 def process_memory():
     process = psutil.Process(os.getpid())
     mem_info = process.memory_info()
     return mem_info.rss
 
-# def profile(func):
-#     def wrapper(*args, **kwargs):
-
-#         mem_before = round(process_memory()/ 1024**2, 2)
-#         result = func(*args, **kwargs)
-#         mem_after = round(process_memory()/ 1024**2, 2)
-#         print("Fucntion {} :consumed memory: {:,} MB".format(
-#             func.__name__,
-#             mem_before, mem_after, mem_after - mem_before))
-#         return result
-#     return wrapper
+def profile_psutil(func):
+    def wrapper(*args, **kwargs):
+        mem_before = round(process_memory()/ 1024**2, 2)
+        result = func(*args, **kwargs)
+        mem_after = round(process_memory()/ 1024**2, 2)
+        print("Fucntion {} :consumed memory: {:,} MB\n".format(
+            func.__name__,
+            mem_before, mem_after, mem_after - mem_before))
+        return result
+    return wrapper
 
 @profile
 def func1():
@@ -64,14 +83,31 @@ def func2():
     del x
     return y
 
-func1()
+@profile_psutil
+def func3():
+    x = [x for x in range(0, 1000)]
+    y = [y*100 for y in range(0, 1500)]
+    del x
+    return y
 
-tracemalloc.start()
-func2()
-current, peak = tracemalloc.get_traced_memory()
-print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB")
-tracemalloc.stop()
-
-check_current_ram()
-check_process_ram("msedge.exe")
-check_process_threads("msedge.exe")
+if __name__ == "__main__":
+    # Function memory monitorining
+    func1()
+    
+    tracemalloc.start()
+    func2()
+    current, peak = tracemalloc.get_traced_memory()
+    print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB\n")
+    tracemalloc.stop()
+    
+    func3()
+    
+    # RAM monitorining
+    check_current_ram()
+    p1 = Monitor(check_process_ram, "javaw.exe")
+    p2 = Monitor(check_process_threads, "javaw.exe")
+    p1.start()
+    p2.start()
+    p1.join()
+    p2.join()
+    
