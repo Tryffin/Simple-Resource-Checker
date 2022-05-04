@@ -2,6 +2,7 @@ import os, psutil, tracemalloc
 import time
 import multiprocessing
 from memory_profiler import profile
+from py import process
 
 
 interval = 3
@@ -30,6 +31,21 @@ def check_process_threads(name):
                 sum += p.num_threads()
                 continue
         print("Total threads used by process " + name + " : " + str(sum) + " threads\n")
+        sum = 0
+        time.sleep(interval)
+        
+        
+def check_process_cpu(name):
+    sum = 0
+    while True:
+        for p in psutil.process_iter():
+            if p.name() == name:
+                print("PID " + str(p.pid) + " : " + name + " " +
+                        str(p.cpu_percent()) + " %")
+                
+                sum += p.cpu_percent()
+                continue
+        print("Total CPU used by process " + name + " : " +  str(round(sum, 2)) + " %\n")
         sum = 0
         time.sleep(interval)
         
@@ -104,10 +120,13 @@ if __name__ == "__main__":
     
     # RAM monitorining
     check_current_ram()
-    p1 = Monitor(check_process_ram, "javaw.exe")
-    p2 = Monitor(check_process_threads, "javaw.exe")
+    process_name = "SpaceClaim.exe"
+    p1 = Monitor(check_process_ram, process_name)
+    p2 = Monitor(check_process_threads, process_name)
+    p3 = Monitor(check_process_cpu, process_name)
     p1.start()
     p2.start()
+    p3.start()
     p1.join()
     p2.join()
-    
+    p3.join()
