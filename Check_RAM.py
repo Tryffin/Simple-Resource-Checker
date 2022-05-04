@@ -2,11 +2,18 @@ import os, psutil, tracemalloc
 import time
 import multiprocessing
 from memory_profiler import profile
-from py import process
 
-
-interval = 3
-def check_process_ram(name):
+class Monitor(multiprocessing.Process):
+    def __init__(self, monitor_type, p_name, interval):
+        multiprocessing.Process.__init__(self)
+        self.monitor_type = monitor_type
+        self.p_name = p_name
+        self.interval = interval
+    def run(self):
+        self.monitor_type(self.p_name, self.interval)
+        
+        
+def check_process_ram(name, interval):
     sum = 0
     while True:
         for p in psutil.process_iter():
@@ -20,7 +27,7 @@ def check_process_ram(name):
         sum = 0
         time.sleep(interval)
 
-def check_process_threads(name):
+def check_process_threads(name, interval):
     sum = 0
     while True:
         for p in psutil.process_iter():
@@ -35,28 +42,20 @@ def check_process_threads(name):
         time.sleep(interval)
         
         
-def check_process_cpu(name):
-    sum = 0
+def check_process_cpu(name, interval):
+    sum = 0.0
     while True:
         for p in psutil.process_iter():
             if p.name() == name:
+                cpu_percent = p.cpu_percent()
                 print("PID " + str(p.pid) + " : " + name + " " +
-                        str(p.cpu_percent()) + " %")
+                        str(cpu_percent) + " %")
                 
-                sum += p.cpu_percent()
+                sum += cpu_percent
                 continue
-        print("Total CPU used by process " + name + " : " +  str(round(sum, 2)) + " %\n")
+        print("Total CPU used by process " + name + " : " + str(sum) + " %\n")
         sum = 0
         time.sleep(interval)
-        
-class Monitor(multiprocessing.Process):
-    def __init__(self, monitor_type, p_name):
-        multiprocessing.Process.__init__(self)
-        self.monitor_type = monitor_type
-        self.p_name = p_name
-        
-    def run(self):
-        self.monitor_type(self.p_name)
         
 
 def check_current_ram():
@@ -69,61 +68,16 @@ def check_current_ram():
     print("Total used memory :" + used + " MB(" + used_per + "%)")
     print("Total available memory :" + free + " MB\n")
 
-#inner psutil function
-def process_memory():
-    process = psutil.Process(os.getpid())
-    mem_info = process.memory_info()
-    return mem_info.rss
-
-def profile_psutil(func):
-    def wrapper(*args, **kwargs):
-        mem_before = round(process_memory()/ 1024**2, 2)
-        result = func(*args, **kwargs)
-        mem_after = round(process_memory()/ 1024**2, 2)
-        print("Fucntion {} :consumed memory: {:,} MB\n".format(
-            func.__name__,
-            mem_before, mem_after, mem_after - mem_before))
-        return result
-    return wrapper
-
-@profile
-def func1():
-    x = [x for x in range(0, 1000)]
-    y = [y*100 for y in range(0, 1500)]
-    del x
-    return y
-
-def func2():
-    x = [x for x in range(0, 1000)]
-    y = [y*100 for y in range(0, 1500)]
-    del x
-    return y
-
-@profile_psutil
-def func3():
-    x = [x for x in range(0, 1000)]
-    y = [y*100 for y in range(0, 1500)]
-    del x
-    return y
 
 if __name__ == "__main__":
-    # Function memory monitorining
-    func1()
-    
-    tracemalloc.start()
-    func2()
-    current, peak = tracemalloc.get_traced_memory()
-    print(f"Current memory usage is {current / 10**2}MB; Peak was {peak / 10**2}MB\n")
-    tracemalloc.stop()
-    
-    func3()
     
     # RAM monitorining
     check_current_ram()
     process_name = "SpaceClaim.exe"
-    p1 = Monitor(check_process_ram, process_name)
-    p2 = Monitor(check_process_threads, process_name)
-    p3 = Monitor(check_process_cpu, process_name)
+    interval = 1
+    p1 = Monitor(check_process_ram, process_name, interval)
+    p2 = Monitor(check_process_threads, process_name, interval)
+    p3 = Monitor(check_process_cpu, process_name, interval)
     p1.start()
     p2.start()
     p3.start()
