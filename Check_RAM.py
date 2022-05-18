@@ -1,7 +1,6 @@
-import os, psutil, tracemalloc
+import psutil
 import time
 import multiprocessing
-from memory_profiler import profile
 
 class Monitor(multiprocessing.Process):
     def __init__(self, monitor_type, p_name, interval):
@@ -11,8 +10,7 @@ class Monitor(multiprocessing.Process):
         self.interval = interval
     def run(self):
         self.monitor_type(self.p_name, self.interval)
-        
-        
+
 def check_process_ram(name, interval):
     sum = 0
     while True:
@@ -73,7 +71,7 @@ if __name__ == "__main__":
     
     # RAM monitorining
     check_current_ram()
-    process_name = "SpaceClaim.exe"
+    process_name = "QQ.exe"
     interval = 1
     p1 = Monitor(check_process_ram, process_name, interval)
     p2 = Monitor(check_process_threads, process_name, interval)
