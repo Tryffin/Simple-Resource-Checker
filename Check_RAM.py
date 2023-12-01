@@ -1,7 +1,15 @@
 import psutil
+import sys
 import time
 import multiprocessing
 
+# get process name from command line args
+# ex: python Check_RAM.py (process)
+# python Check_RAM.py node
+if len(sys.argv) < 2:
+	print ("missing process command arg")
+	sys.exit()
+ 
 class Monitor(multiprocessing.Process):
     def __init__(self, monitor_type, p_name, interval):
         multiprocessing.Process.__init__(self)
@@ -71,8 +79,8 @@ if __name__ == "__main__":
     
     # RAM monitorining
     check_current_ram()
-    process_name = "QQ.exe"
-    interval = 1
+    process_name = sys.argv[1]
+    interval = 3
     p1 = Monitor(check_process_ram, process_name, interval)
     p2 = Monitor(check_process_threads, process_name, interval)
     p3 = Monitor(check_process_cpu, process_name, interval)
